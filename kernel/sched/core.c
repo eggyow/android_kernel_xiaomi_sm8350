@@ -5798,7 +5798,8 @@ long sched_setaffinity(pid_t pid, const struct cpumask *in_mask)
 {
 	cpumask_var_t cpus_allowed, new_mask;
 	struct task_struct *p;
-	int retval = 0;
+	int retval;
+	bool skip = false;
 #ifdef CONFIG_SCHED_WALT
 	int dest_cpu;
 	cpumask_t allowed_mask;
@@ -5856,6 +5857,9 @@ long sched_setaffinity(pid_t pid, const struct cpumask *in_mask)
 	if (retval)
 		goto out_free_new_mask;
 
+	trace_android_vh_sched_setaffinity_early(p, in_mask, &skip);
+	if (skip)
+		goto out_free_new_mask;
 
 	cpuset_cpus_allowed(p, cpus_allowed);
 	cpumask_and(new_mask, in_mask, cpus_allowed);
